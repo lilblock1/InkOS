@@ -868,5 +868,8 @@ void gui_init(gui_config_t *cfg) {
 		timeset_show();
 	}
 
-	switch_screen(main_menu_screen);
+	// InkOS starts on the built-in EPUB shelf. Keep the original menu and
+	// its pages initialized for now; this changes only the first normal screen
+	// and leaves the stock first-boot language/clock flow above intact.
+	switch_screen(ebookpage_screen);
 }
