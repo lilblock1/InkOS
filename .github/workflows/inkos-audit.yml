@@ -1,0 +1,21 @@
+name: InkOS source safety audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out InkOS
+        uses: actions/checkout@v4
+      - name: Audit reading, Wi-Fi, boot and update prerequisites
+        shell: bash
+        run: bash tools/inkos-audit.sh
