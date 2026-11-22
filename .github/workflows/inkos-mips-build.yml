@@ -1,0 +1,80 @@
+name: InkOS MIPS target build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "sonix-player/**"
+      - ".github/workflows/inkos-mips-build.yml"
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: inkos-mips-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  target-build:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 350
+    steps:
+      - name: Check out InkOS
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install cross-toolchain build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential gcc g++ make git curl wget ca-certificates \
+            patch texinfo automake libtool autoconf bison flex \
+            libgmp-dev libmpfr-dev libmpc-dev zlib1g-dev libasound2-dev \
+            pkg-config xz-utils bzip2 gzip
+
+      - name: Build MIPS32r2 player and launcher
+        working-directory: sonix-player
+        env:
+          MAKEFLAGS: -j2
+        run: |
+          set -o pipefail
+          make target 2>&1 | tee ../inkos-mips-build.log
+
+      - name: Verify target ABI and binaries
+        working-directory: sonix-player
+        run: |
+          set -euo pipefail
+          test -s sonix_player
+          test -s sonix_launch
+          file sonix_player sonix_launch
+          readelf -h sonix_player
+          readelf -h sonix_launch
+          make check-abi
+          python3 - <<'PY'
+          import struct
+          from pathlib import Path
+          for name in ("sonix_player", "sonix_launch"):
+              p = Path(name)
+              b = p.read_bytes()[:20]
+              assert b[:4] == b"\\x7fELF", f"{name}: not ELF"
+              assert b[4] == 1, f"{name}: not ELF32"
+              assert b[5] == 1, f"{name}: not little-endian"
+              machine = struct.unpack_from("<H", b, 18)[0]
+              assert machine == 8, f"{name}: expected MIPS ELF, got machine={machine}"
+              print(f"PASS: {name} is ELF32 little-endian MIPS ({p.stat().st_size} bytes)")
+          PY
+
+      - name: Upload unflashed build artifacts and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: inkos-mips-build-${{ github.sha }}
+          path: |
+            sonix-player/sonix_player
+            sonix-player/sonix_player_debug
+            sonix-player/sonix_launch
+            inkos-mips-build.log
+          if-no-files-found: warn
+          retention-days: 14
