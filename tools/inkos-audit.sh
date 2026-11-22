@@ -16,6 +16,13 @@ need "sonix-packer/assets/R1/usr/resource/sonix/components/system-info.json"
 
 grep -q 'sonix_player' "$ROOT/sonix-packer/assets/R1/usr/bin/sonix_player.sh" ||
   fail "R1 startup script no longer launches the player"
+
+grep -q 'ebookpage_init(cfg)' "$ROOT/sonix-player/src/gui/shell/gui.c" ||
+  fail "built-in EPUB shelf is not initialized"
+grep -q 'switch_screen(ebookpage_screen)' "$ROOT/sonix-player/src/gui/shell/gui.c" ||
+  fail "InkOS does not start on the built-in EPUB shelf"
+grep -q 'wifi_init();' "$ROOT/sonix-player/src/main.c" ||
+  fail "Wi-Fi initialization missing from startup"
 grep -q 'ota-repo' "$ROOT/sonix-packer/assets/R1/usr/resource/sonix/components/system-info.json" ||
   fail "OTA repository metadata missing"
 grep -q 'r1_original.upt' "$ROOT/sonix-packer/sonix_firmware_packer.sh" ||
