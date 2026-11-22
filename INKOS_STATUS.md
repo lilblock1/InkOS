@@ -35,4 +35,4 @@ InkOS is the HiBy R1 reading-focused firmware project based on the Sonix Player 
 
 ## Current limitations
 
-The source import and repository audit are complete, but this repository does not currently contain the stock R1 firmware input required by the packer. No flashable InkOS image has been produced or hardware-validated. The next development work should focus on the built-in reader and safe source/build changes, not KOReader.
+The source import and repository audit are complete. The user has supplied a local stock R1 OTA candidate (`r1.upt`; SHA-256 `0fec88bb3ad0baa55a703e4e2b1038560d4a526f0dd024d2ed037f1560ed09f9`). Its ISO9660 OTA layout advertises compatibility `hiby_r1_x1600_auto_rf_auto`, with an `xImage` kernel and `rootfs.squashfs` payload. The firmware is intentionally kept out of public GitHub. Packer extraction compatibility and the expected root filesystem paths still need to be verified. No target binary or flashable InkOS image has been built, and no hardware boot has been verified. Next steps are a real MIPS target build, packaging, and then physical R1 testing; do not label the image bootable until those checks pass.
