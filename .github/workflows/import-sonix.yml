@@ -24,6 +24,9 @@ jobs:
             --exclude='.git' \
             --exclude='.github/workflows/import-sonix.yml' \
             /tmp/sonix-player/ ./
+          # The default GitHub Actions token cannot create/update workflow files.
+          # Keep InkOS's own importer and omit upstream workflows from this import.
+          find .github/workflows -maxdepth 1 -type f ! -name 'import-sonix.yml' -delete
           git add -A
           if git diff --cached --quiet; then
             echo "No source changes to import."
